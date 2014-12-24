@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="mapQuestApp">
+<head >
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{{pageData.title}}</title>
+
+  <!-- the css -->
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/overrides.css">
+
+  <!-- the scripts -->
+  <script src='bower_components/jquery/dist/jquery.min.js'></script>
+  <script src='bower_components/angular/angular.js'></script>
+  <script src='js/controller.js'></script>
+  <script src='bower_components/bootstrap/dist/js/bootstrap.min.js'></script>
+
+
+</head>
+<body ng-controller="MapQuestCtrl">
+  <nav class='navbar navbar-inverse navbar-fixed-top' role='navigation'>
+    <div class='container'>
+      <div class='navbar-header'>
+        <a class="navbar-brand" href="#">{{pageData.title}}</a>
+      </div>
+    </div>
+
+  </nav>
+
+  <div class="container">
+    <div id='myContentDiv'>
+      <h1>{{pageData.title}}</h1>
+
+      <div class='well'>
+        <form role="form">
+          <div class="form-group">
+            <label for='inputArea'>Place your information here:</label>
+            <textarea id='inputArea' class="form-control" placeholder="CSV Data">Id,Company Name,Founder,City,Country,Postal Code, Street,Photo,Home Page,Garage Latitude,Garage Longitude
+              1,Google,Larry Page & Sergey Brin,Mountain View,USA,CA 94043,1600 Amphitheatre Pkwy,http://interviewsummary.com/wp-content/uploads/2013/07/larry-page-and-sergey-brin-of-google-620x400.jpg,http://google.com,37.457674,-122.163452
+              2,Apple,Steve Jobs & Steve Wozniak,Cupertino,USA,CA 95014,1 Infinite Loop,http://i.dailymail.co.uk/i/pix/2013/02/08/article-2275512-172E13BB000005DC-732_634x505.jpg,http://apple.com,37.3403188,-122.0581469
+              3,Microsoft,Bill Gates,Redmond,USA,WA 98052-7329,One Microsoft Way,http://postdefiance.com/wp-content/uploads/2013/02/bill-gates-microsoft-young.jpg,http://microsoft.com,37.472189,-122.190191</textarea>
+            </div>
+          </form>
+      </div>
+
+
+      <table class='table'>
+        <tr>
+          <td>
+            Id
+          </td>
+          <td>
+            Company Name
+          </td>
+          <td>
+            Founder
+          </td>
+          <td>
+            City
+          </td>
+          <td>
+            Country
+          </td>
+          <td>
+            Postal Code
+          </td>
+          <td>
+            Photo
+          </td>
+          <td>
+            Home Page
+          </td>
+          <td>
+            Garage Latitude
+          </td>
+          <td>
+            Garage Longitude
+          </td>
+        </tr>
+        <tr ng-repeat='row in records'>
+          <td>
+            {{row.id}}
+          </td>
+          <td>
+            {{row.companyName}}
+          </td>
+          <td>
+            {{row.founder}}
+          </td>
+          <td>
+            {{row.city}}
+          </td>
+          <td>
+            {{row.country}}
+          </td>
+          <td>
+            {{row.postalCode}}
+          </td>
+          <td>
+            {{row.photo}}
+          </td>
+          <td>
+            {{row.homePage}}
+          </td>
+          <td>
+            {{row.latitude}}
+          </td>
+          <td>
+            {{row.longitude}}
+          </td>
+        </tr>
+
+      </table>
+
+    </div>
+  </div>
+</body>
+</html>
