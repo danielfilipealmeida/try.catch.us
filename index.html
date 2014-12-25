@@ -15,6 +15,7 @@
   <!-- the scripts -->
   <script src='bower_components/jquery/dist/jquery.min.js'></script>
   <script src='bower_components/angular/angular.js'></script>
+  <script src='bower_components/angular-sanitize/angular-sanitize.js'></script>
   <script src='js/controller.js'></script>
   <script src='bower_components/bootstrap/dist/js/bootstrap.min.js'></script>
 
@@ -47,69 +48,40 @@
       </div>
 
 
-      <table class='table'>
-        <tr>
+      <table class='table table-condensed' id='dataTable'>
+        <thead>
+          <tr>
+            <td></td>
+            <td>Id</td>
+            <td>Company Name</td>
+            <td>Founder</td>
+            <td>City</td>
+            <td>Country</td>
+            <td>Postal Code</td>
+            <td>Photo</td>
+            <td>Home Page</td>
+            <td>Garage Latitude</td>
+            <td>Garage Longitude</td>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+        <tr ng-repeat='row in csvData.records'>
+          <td><input type='checkbox' class='visibleRecordChBx' recordId='{{row.id}}' checked></td>
+          <td>{{row.id}}</td>
+          <td>{{row.companyName}}</td>
+          <td>{{row.founder}}</td>
+          <td>{{row.city}}</td>
+          <td>{{row.country}}</td>
+          <td>{{row.postalCode}}</td>
+          <td ng-bind-html="row.photo"></td>
+          <td ng-bind-html="row.homePage"></td>
           <td>
-            Id
+            {{row.garageLatitude}}
           </td>
           <td>
-            Company Name
-          </td>
-          <td>
-            Founder
-          </td>
-          <td>
-            City
-          </td>
-          <td>
-            Country
-          </td>
-          <td>
-            Postal Code
-          </td>
-          <td>
-            Photo
-          </td>
-          <td>
-            Home Page
-          </td>
-          <td>
-            Garage Latitude
-          </td>
-          <td>
-            Garage Longitude
-          </td>
-        </tr>
-        <tr ng-repeat='row in records'>
-          <td>
-            {{row.id}}
-          </td>
-          <td>
-            {{row.companyName}}
-          </td>
-          <td>
-            {{row.founder}}
-          </td>
-          <td>
-            {{row.city}}
-          </td>
-          <td>
-            {{row.country}}
-          </td>
-          <td>
-            {{row.postalCode}}
-          </td>
-          <td>
-            {{row.photo}}
-          </td>
-          <td>
-            {{row.homePage}}
-          </td>
-          <td>
-            {{row.latitude}}
-          </td>
-          <td>
-            {{row.longitude}}
+            {{row.garageLongitude}}
           </td>
         </tr>
 

@@ -5,3 +5,11 @@
 textarea {
   height:100px !important;
 }
+
+#dataTable img {
+  max-width: 150px !important;
+}
+
+body {
+  font-size: 13px;
+}

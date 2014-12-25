@@ -23,17 +23,50 @@ String.prototype.camelCase = function() {
 }
 
 
-var mapQuestApp = angular.module('mapQuestApp', []);
+/***
+ * method to detect if a string is a url
+ */
+String.prototype.isUrl = function() {
+  var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+  return regexp.test(this);
+}
 
-mapQuestApp.controller('MapQuestCtrl', function($scope) {
+/**
+ * returns the filename from an url
+ */
+String.prototype.fileFromUrl = function() {
+  return this.substring(this.lastIndexOf('/')+1);
+}
+
+
+/**
+ * check if a filename has an image extention
+ */
+String.prototype.isImage = function() {
+  var imageExts = ["jpg", "gif", "png"];
+
+  // split at point
+  filenameArray = this.split('.');
+
+  if (filenameArray.length==1) return false;
+
+  return imageExts.indexOf(filenameArray[1].toLowerCase()) >= 0 ? true : false;
+
+}
+
+
+var mapQuestApp = angular.module('mapQuestApp', ['ngSanitize']);
+
+mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
 
   $scope.pageData = {
       title: "Map Quest"
   };
   $scope.csvData = {
-    headers: [],
+    headers: {},
     records: [],
-    filtering : []
+    filtering : [],
+    columnOrdering: []
   };
 
 
@@ -50,7 +83,27 @@ mapQuestApp.controller('MapQuestCtrl', function($scope) {
     for (var i in csvArray) {
       if (typeof $scope.csvData.headers[i]!=='undefined') {
         var columnName = $scope.csvData.headers[i].camelCase();
-        returningObj[columnName] = csvArray[i];
+        var value = csvArray[i];
+
+        // check if this is an url
+        if (value.isUrl() == true) {
+
+          var filename = value.fileFromUrl();
+
+          // check if this is an image by remo
+          if (filename.isImage()) {
+            console.log("image! ", filename);
+            value = '<img src="'+value+'" class="img-responsive img-thumbnail" />';
+          }
+          else {
+            // if this isn't an image, make it a link
+            value = '<a href="'+value+'">'+value+'</a>';
+          }
+
+        }
+
+
+        returningObj[columnName] = value;
       }
 
     }
@@ -86,14 +139,23 @@ mapQuestApp.controller('MapQuestCtrl', function($scope) {
 
       // remove whitespace
       for (var j in splittedCsvRow) {
+
         splittedCsvRow[j] = splittedCsvRow[j].trim();
+
+        // // get the original column ordering by converting the splitted csv data values into camel case
+        if (count == 0) $scope.csvData.columnOrdering.push(splittedCsvRow[j].camelCase());
       }
 
-      if (count == 0) $scope.csvData.headers = splittedCsvRow;
+      var csvRowObject = $scope.generateRecordRowFromCSVArray(splittedCsvRow);
+
+      // handle row
+      if (count == 0){
+        $scope.csvData.headers = splittedCsvRow;
+        $scope.csvData.headersObject = csvRowObject;
+      }
       else {
         //$scope.csvData.records.push(splittedCsvRow);
-        $scope.csvData.records.push($scope.generateRecordRowFromCSVArray(splittedCsvRow));
-
+        $scope.csvData.records.push(csvRowObject);
       }
 
       count++;
@@ -105,5 +167,6 @@ mapQuestApp.controller('MapQuestCtrl', function($scope) {
 
 
   // run
+  //$sceProvider.enabled(false);
   $scope.generateDataFromTextarea();
 });
