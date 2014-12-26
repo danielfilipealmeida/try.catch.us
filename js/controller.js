@@ -66,9 +66,16 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
     headers: {},
     records: [],
     filtering : [],
-    columnOrdering: []
+    columnOrdering: [],
+    labelField: "companyName"
   };
-
+  $scope.map = null;
+  $scope.mapOptions = {
+    center: new google.maps.LatLng(37.457674,-122.163452),
+    zoom: 8,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  $scope.markersArray = [];
 
 
   /**
@@ -92,22 +99,16 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
 
           // check if this is an image by remo
           if (filename.isImage()) {
-            console.log("image! ", filename);
             value = '<img src="'+value+'" class="img-responsive img-thumbnail" />';
           }
           else {
             // if this isn't an image, make it a link
             value = '<a href="'+value+'">'+value+'</a>';
           }
-
         }
-
-
         returningObj[columnName] = value;
       }
-
     }
-
     return returningObj
   }
 
@@ -139,10 +140,9 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
 
       // remove whitespace
       for (var j in splittedCsvRow) {
-
         splittedCsvRow[j] = splittedCsvRow[j].trim();
 
-        // // get the original column ordering by converting the splitted csv data values into camel case
+        // get the original column ordering by converting the splitted csv data values into camel case
         if (count == 0) $scope.csvData.columnOrdering.push(splittedCsvRow[j].camelCase());
       }
 
@@ -166,7 +166,76 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
 
 
 
-  // run
-  //$sceProvider.enabled(false);
-  $scope.generateDataFromTextarea();
+  /**
+   * Initializes the the map
+   */
+   $scope.initMap = function() {
+    $scope.map = new google.maps.Map(document.getElementById('map'), $scope.mapOptions);
+   }
+
+
+
+   /**
+    * Clear all the markers
+    */
+   $scope.clearMarkers = function() {
+
+     for(var i in  $scope.markersArray) {
+       var marker =  $scope.markersArray[i];
+       marker.setMap(null);
+     }
+
+
+
+   }
+
+
+   /**
+    * Get the selected records and update the map
+    */
+   $scope.setMarkers = function() {
+
+     // generate an array with the id's of the selected rows on the list
+     var visibleIds = [];
+     $('#dataTable tbody tr td input:checked').each(function() {
+       var recordId = this.getAttribute("recordId");
+       visibleIds.push(recordId);
+     });
+
+     for(var i in $scope.csvData.records) {
+       var currentRecord =  $scope.csvData.records[i];
+       // check if this record is visible
+       if (visibleIds.indexOf(currentRecord.id)>-1) {
+         var title = currentRecord[$scope.csvData.labelField];
+         console.log(title);
+         var marker = new google.maps.Marker({
+           position:new google.maps.LatLng(currentRecord.garageLatitude, currentRecord.garageLongitude),
+           title: title
+         });
+         marker.setMap($scope.map);
+         $scope.markersArray.push(marker);
+       }
+     }
+   }
+
+
+   /**
+    * Handles the events of checkbox clicks (selection/unselection)
+    */
+   $scope.handleCheckboxClick = function() {
+     $scope.clearMarkers();
+     $scope.setMarkers();
+   }
+
+
+
+   // run
+   $scope.generateDataFromTextarea();
+   $scope.initMap();
+
+   // code to run after the page is loaded
+   angular.element(document).ready(function () {
+     $scope.setMarkers();
+   });
+
 });

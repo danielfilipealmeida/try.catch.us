@@ -19,6 +19,10 @@
   <script src='js/controller.js'></script>
   <script src='bower_components/bootstrap/dist/js/bootstrap.min.js'></script>
 
+  <!-- google maps api -->
+  <script type="text/javascript"
+  src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB7r-VtYCa_57blltkjpAvwAeDcvTD7eso&sensor=SET_TO_TRUE_OR_FALSE">
+  </script>
 
 </head>
 <body ng-controller="MapQuestCtrl">
@@ -35,6 +39,7 @@
     <div id='myContentDiv'>
       <h1>{{pageData.title}}</h1>
 
+      <!-- the textbox -->
       <div class='well'>
         <form role="form">
           <div class="form-group">
@@ -48,7 +53,8 @@
       </div>
 
 
-      <table class='table table-condensed' id='dataTable'>
+      <!-- the table -->
+      <table class='table table-condensed table-responsive' id='dataTable'>
         <thead>
           <tr>
             <td></td>
@@ -68,7 +74,7 @@
 
         </tbody>
         <tr ng-repeat='row in csvData.records'>
-          <td><input type='checkbox' class='visibleRecordChBx' recordId='{{row.id}}' checked></td>
+          <td><input type='checkbox' class='visibleRecordChBx' recordId='{{row.id}}' checked ng-click="handleCheckboxClick()"></td>
           <td>{{row.id}}</td>
           <td>{{row.companyName}}</td>
           <td>{{row.founder}}</td>
@@ -86,6 +92,12 @@
         </tr>
 
       </table>
+
+
+
+      <!-- the map -->
+      <div id="map" style="width:100%; height:100%"></div>
+
 
     </div>
   </div>

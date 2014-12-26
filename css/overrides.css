@@ -13,3 +13,7 @@ textarea {
 body {
   font-size: 13px;
 }
+
+#map {
+  min-height:300px;
+}
