@@ -23,6 +23,7 @@
   <script type="text/javascript"
   src="http://maps.googleapis.com/maps/api/js?key=AIzaSyB7r-VtYCa_57blltkjpAvwAeDcvTD7eso&sensor=SET_TO_TRUE_OR_FALSE">
   </script>
+  <script src='js/infobox_packed.js'></script>
 
 </head>
 <body ng-controller="MapQuestCtrl">
@@ -54,46 +55,77 @@
 
 
       <!-- the table -->
-      <table class='table table-condensed table-responsive' id='dataTable'>
-        <thead>
-          <tr>
-            <td></td>
-            <td>Id</td>
-            <td>Company Name</td>
-            <td>Founder</td>
-            <td>City</td>
-            <td>Country</td>
-            <td>Postal Code</td>
-            <td>Photo</td>
-            <td>Home Page</td>
-            <td>Garage Latitude</td>
-            <td>Garage Longitude</td>
+      <div class="table-responsive">
+
+        <table class='table table-condensed' id='dataTable'>
+          <thead>
+            <tr>
+              <td></td>
+              <td>Id</td>
+              <td>Company Name</td>
+              <td>Founder</td>
+              <td>City</td>
+              <td>Country</td>
+              <td>Postal Code</td>
+              <td>Photo</td>
+              <td>Home Page</td>
+              <td>Garage Latitude</td>
+              <td>Garage Longitude</td>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+          <tr ng-repeat='row in csvData.sortedRecords'>
+            <td><input type='checkbox' class='visibleRecordChBx' recordId='{{row.id}}' checked ng-click="handleCheckboxClick()"></td>
+            <td>{{row.id}}</td>
+            <td>{{row.companyName}}</td>
+            <td>{{row.founder}}</td>
+            <td>{{row.city}}</td>
+            <td>{{row.country}}</td>
+            <td>{{row.postalCode}}</td>
+            <td ng-bind-html="row.photo"></td>
+            <td ng-bind-html="row.homePage"></td>
+            <td>
+              {{row.garageLatitude}}
+            </td>
+            <td>
+              {{row.garageLongitude}}
+            </td>
           </tr>
-        </thead>
-        <tbody>
 
-        </tbody>
-        <tr ng-repeat='row in csvData.records'>
-          <td><input type='checkbox' class='visibleRecordChBx' recordId='{{row.id}}' checked ng-click="handleCheckboxClick()"></td>
-          <td>{{row.id}}</td>
-          <td>{{row.companyName}}</td>
-          <td>{{row.founder}}</td>
-          <td>{{row.city}}</td>
-          <td>{{row.country}}</td>
-          <td>{{row.postalCode}}</td>
-          <td ng-bind-html="row.photo"></td>
-          <td ng-bind-html="row.homePage"></td>
-          <td>
-            {{row.garageLatitude}}
-          </td>
-          <td>
-            {{row.garageLongitude}}
-          </td>
-        </tr>
+        </table>
+      </div>
 
-      </table>
+      <div class='well'>
+        <h2>Table and Map options</h2>
+        <div class='row'>
+          <div class='col-md-4'>
+            <label for="labelsCombo">Labels</label>
+            <select class='form-control input-sm' name='labelsCombo' id="labelsCombo" ng-model="optionsForm.labelField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLabelsComboChange()"></select>
+          </div>
+          <div class='col-md-4'>
+            <label for="sortFieldCombo">Sort by field</label>
+            <select class='form-control input-sm' name='sortFieldCombo' id="sortFieldCombo" ng-model="optionsForm.sortField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleOrderComboChange()"></select>
 
 
+            <label for="sortOrderCombo">Sorting Order</label>
+            <select class='form-control input-sm' name='sortOrderCombo' id="sortOrderCombo" ng-model="optionsForm.sortOrder" required ng-change="handleOrderComboChange()">
+              <option value="1">Ascending</option>
+              <option value="-1">Descending</option>
+            </select>
+
+          </div>
+          <div class='col-md-4'>
+
+          </div>
+
+        </div>
+
+
+
+
+      </div>
 
       <!-- the map -->
       <div id="map" style="width:100%; height:100%"></div>

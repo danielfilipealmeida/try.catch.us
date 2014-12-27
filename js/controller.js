@@ -55,6 +55,17 @@ String.prototype.isImage = function() {
 }
 
 
+/**
+ *
+ */
+String.prototype.crop = function(len) {
+  var val = this;
+  if (this.length>len) {
+      val = val.substring(0,len)+"...";
+  }
+  return val;
+}
+
 var mapQuestApp = angular.module('mapQuestApp', ['ngSanitize']);
 
 mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
@@ -62,13 +73,18 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
   $scope.pageData = {
       title: "Map Quest"
   };
+
+  /* csv Data */
   $scope.csvData = {
-    headers: {},
+    headers: [],
+    headersObject: {},
     records: [],
+    sortedRecords: [],
     filtering : [],
     columnOrdering: [],
-    labelField: "companyName"
   };
+
+  /* map data */
   $scope.map = null;
   $scope.mapOptions = {
     center: new google.maps.LatLng(37.457674,-122.163452),
@@ -76,7 +92,29 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
   $scope.markersArray = [];
+  $scope.defaultMapLabelOptions = {
+    boxStyle: {
+      boxShadow: "1px 1px 5px #888888",
+      background: "white",
+      textAlign: "center",
+      fontSize: "8pt",
+      width: "70px",
+      opacity: 1.0
+    },
+    disableAutoPan: true,
+    pixelOffset: new google.maps.Size(-35, -60),
+    closeBoxURL: "",
+    pane: "floatPane",
+    enableEventPropagation: true
+  };
+  $scope.labelsArray = [];
 
+  /* options form */
+  $scope.optionsForm = {
+    labelField: "companyName",
+    sortField: "founder",
+    sortOrder: 1
+  }
 
   /**
    * generates an object from the data of the splitted csv row and uses
@@ -146,22 +184,61 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
         if (count == 0) $scope.csvData.columnOrdering.push(splittedCsvRow[j].camelCase());
       }
 
-      var csvRowObject = $scope.generateRecordRowFromCSVArray(splittedCsvRow);
+      var csvRowObject;
 
       // handle row
-      if (count == 0){
+      if (count == 0) {
         $scope.csvData.headers = splittedCsvRow;
+        csvRowObject = $scope.generateRecordRowFromCSVArray(splittedCsvRow);
         $scope.csvData.headersObject = csvRowObject;
       }
       else {
-        //$scope.csvData.records.push(splittedCsvRow);
+        csvRowObject = $scope.generateRecordRowFromCSVArray(splittedCsvRow);
         $scope.csvData.records.push(csvRowObject);
       }
 
       count++;
     }
-    console.log($scope.csvData);
 
+  }
+
+
+
+  /**
+   * Calculate the sort order.
+   * Uses a multi-dimensional sort to extract the order of indexes of each row
+   */
+  $scope.filterRecords = function() {
+    // creates an array with all the values of the sort column
+    var filteringColumnData = [];
+    var count = 0;
+    $scope.csvData.records.forEach(function(record) {
+      var sortElement = [count, record[$scope.optionsForm.sortField]]
+      filteringColumnData.push(sortElement);
+      count++
+    });
+
+    // calculate sorting order
+    var sortResult = filteringColumnData.sort(function(a, b) {
+      // uses the lower case of the second field to sort
+      var x = a[1].toLowerCase();
+      var y = b[1].toLowerCase();
+
+      return (x < y ? -1 : x > y ? 1 : 0) * $scope.optionsForm.sortOrder;
+    });
+
+
+    // takes out the sorting order from the first columb of the primary array
+    $scope.csvData.columnOrdering=[];
+    sortResult.forEach(function(sortResultRecord) {
+      $scope.csvData.columnOrdering.push(sortResultRecord[0]);
+    });
+
+    // now sort!!
+    $scope.csvData.sortedRecords = [];
+    $scope.csvData.columnOrdering.forEach(function(index) {
+      $scope.csvData.sortedRecords.push($scope.csvData.records[index]);
+    });
   }
 
 
@@ -180,12 +257,16 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
     */
    $scope.clearMarkers = function() {
 
+     // clear markers
      for(var i in  $scope.markersArray) {
        var marker =  $scope.markersArray[i];
        marker.setMap(null);
      }
 
-
+     // clear labels
+     for(var i in  $scope.labelsArray) {
+        $scope.labelsArray[i].close();
+     }
 
    }
 
@@ -206,31 +287,73 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
        var currentRecord =  $scope.csvData.records[i];
        // check if this record is visible
        if (visibleIds.indexOf(currentRecord.id)>-1) {
-         var title = currentRecord[$scope.csvData.labelField];
-         console.log(title);
+         var title = currentRecord[$scope.optionsForm.labelField];
+
+
          var marker = new google.maps.Marker({
            position:new google.maps.LatLng(currentRecord.garageLatitude, currentRecord.garageLongitude),
            title: title
          });
          marker.setMap($scope.map);
          $scope.markersArray.push(marker);
+
+         // setup label
+         var labelOption = $scope.defaultMapLabelOptions;
+         labelOption.content = title.crop(10);
+         labelOption.position = marker.getPosition();
+         var label = new InfoBox(labelOption)
+         label.open($scope.map);
+         $scope.labelsArray.push(label);
        }
      }
+
+
    }
 
 
    /**
-    * Handles the events of checkbox clicks (selection/unselection)
+    * Destroy and recreate map data
     */
-   $scope.handleCheckboxClick = function() {
+   $scope.updateMap = function() {
      $scope.clearMarkers();
      $scope.setMarkers();
    }
 
 
 
+   /***********************************************************************/
+   /* EVENTS                                                              */
+   /***********************************************************************/
+
+
+   /**
+    * Handles the events of checkbox clicks (selection/unselection)
+    */
+   $scope.handleCheckboxClick = function() {
+     $scope.updateMap();
+   }
+
+   /**
+    *
+    */
+   $scope.handleLabelsComboChange = function() {
+     var selectedLabelIndex = $('#labelsCombo').find(":selected").val();
+     $scope.optionsForm.labelField = $scope.csvData.headers[selectedLabelIndex].camelCase();
+
+     $scope.updateMap();
+   }
+
+
+   $scope.handleOrderComboChange = function() {
+     var selectedLabelIndex = $('#sortFieldCombo').find(":selected").val();
+     $scope.optionsForm.sortField = $scope.csvData.headers[selectedLabelIndex].camelCase();
+     $scope.optionsForm.sortOrder = $('#sortOrderCombo').find(":selected").val();
+     $scope.filterRecords();
+   }
+
    // run
    $scope.generateDataFromTextarea();
+   $scope.filterRecords();
    $scope.initMap();
 
    // code to run after the page is loaded
