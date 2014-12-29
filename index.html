@@ -18,6 +18,8 @@
   <script src='bower_components/angular-sanitize/angular-sanitize.js'></script>
   <script src='js/controller.js'></script>
   <script src='bower_components/bootstrap/dist/js/bootstrap.min.js'></script>
+  <script src='bower_components/async/lib/async.js'></script>
+
 
   <!-- google maps api -->
   <script type="text/javascript"
@@ -38,8 +40,7 @@
 
   <div class="container">
     <div id='myContentDiv'>
-      <h1>{{pageData.title}}</h1>
-
+  
       <!-- the textbox -->
       <div class='well'>
         <form role="form">
@@ -97,41 +98,79 @@
         </table>
       </div>
 
-      <div class='well'>
-        <h2>Table and Map options</h2>
-        <div class='row'>
-          <div class='col-md-4'>
-            <label for="labelsCombo">Labels</label>
-            <select class='form-control input-sm' name='labelsCombo' id="labelsCombo" ng-model="optionsForm.labelField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLabelsComboChange()"></select>
-          </div>
-          <div class='col-md-4'>
-            <label for="sortFieldCombo">Sort by field</label>
-            <select class='form-control input-sm' name='sortFieldCombo' id="sortFieldCombo" ng-model="optionsForm.sortField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleOrderComboChange()"></select>
-
-
-            <label for="sortOrderCombo">Sorting Order</label>
-            <select class='form-control input-sm' name='sortOrderCombo' id="sortOrderCombo" ng-model="optionsForm.sortOrder" required ng-change="handleOrderComboChange()">
-              <option value="1">Ascending</option>
-              <option value="-1">Descending</option>
-            </select>
-
-          </div>
-          <div class='col-md-4'>
-
-          </div>
-
-        </div>
-
-
-
-
-      </div>
 
       <!-- the map -->
       <div id="map" style="width:100%; height:100%"></div>
 
 
+
+      <h4>Table and Map options</h4>
+      <div class='well'>
+
+        <div class='row'>
+          <div class='col-md-4'>
+            <div class="form-group">
+              <label for="labelsCombo">Labels</label>
+              <select class='form-control input-sm' name='labelsCombo' id="labelsCombo" ng-model="optionsForm.labelField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLabelsComboChange()"></select>
+            </div>
+          </div>
+          <div class='col-md-4'>
+            <div class="form-group">
+              <label for="sortFieldCombo">Sort by field</label>
+              <select class='form-control input-sm' name='sortFieldCombo' id="sortFieldCombo" ng-model="optionsForm.sortField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleOrderComboChange()"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="sortOrderCombo">Sorting Order</label>
+              <select class='form-control input-sm' name='sortOrderCombo' id="sortOrderCombo" ng-model="optionsForm.sortOrder" required ng-change="handleOrderComboChange()">
+                <option value="1">Ascending</option>
+                <option value="-1">Descending</option>
+              </select>
+            </div>
+
+          </div>
+          <div class='col-md-4'>
+            <div class="form-group">
+              <label for="locationTypeCombo">Type of location</label>
+              <select class='form-control input-sm' name='locationTypeCombo' id="locationTypeCombo" ng-model="optionsForm.locationType" required ng-change="handleLocationSettingsChange()">
+                <option value="0">Geolocation fields</option>
+                <option value="1">Location String</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="latitudeComboFG">
+              <label for="latitudeCombo">Latitude Field</label>
+              <select class='form-control input-sm' name='latitudeCombo' id="latitudeCombo" ng-model="optionsForm.latitudeField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLocationSettingsChange()"></select>
+            </div>
+
+            <div class="form-group" id="longitudeComboFG">
+              <label for="longitudeCombo">Longitude Field</label>
+              <select class='form-control input-sm' name='longitudeCombo' id="longitudeCombo" ng-model="optionsForm.longitudeField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLocationSettingsChange()"></select>
+            </div>
+
+
+            <div class="form-group" id="LocationDescriptionComboFG" style='display:none'>
+              <label for="LocationDescriptionCombo">Location Description Field</label>
+              <select class='form-control input-sm' name='LocationDescriptionCombo' id="LocationDescriptionCombo" ng-model="optionsForm.locationDescriptionField" ng-options="value.camelCase() as value for value in csvData.headers" required ng-change="handleLocationSettingsChange()"></select>
+            </div>
+
+
+          </div>
+
+        </div>
+      </div>
+
+
+
+
     </div>
   </div>
+
+
+  <footer class="footer">
+    <div class="container">
+      <p class="text-muted">2014 Daniel Almeida: <a href='mailto:danielf.almeida@gmail.com'>danielf.almeida@gmail.com</a></p>
+    </div>
+  </footer>
 </body>
 </html>

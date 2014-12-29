@@ -113,7 +113,11 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
   $scope.optionsForm = {
     labelField: "companyName",
     sortField: "founder",
-    sortOrder: 1
+    sortOrder: 1,
+    locationType: 0,
+    latitudeField: "garageLatitude",
+    longitudeField: "garageLongitude",
+    locationDescriptionField:"city"
   }
 
   /**
@@ -276,6 +280,22 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
     */
    $scope.setMarkers = function() {
 
+     function placeMarker(markerOptions, title) {
+       var marker = new google.maps.Marker(markerOptions);
+       marker.setMap($scope.map);
+       $scope.markersArray.push(marker);
+
+       // setup label
+       var labelOption = $scope.defaultMapLabelOptions;
+       labelOption.content = title.crop(10);
+       labelOption.position = marker.getPosition();
+       var label = new InfoBox(labelOption)
+       label.open($scope.map);
+       $scope.labelsArray.push(label);
+     }
+
+
+
      // generate an array with the id's of the selected rows on the list
      var visibleIds = [];
      $('#dataTable tbody tr td input:checked').each(function() {
@@ -283,30 +303,55 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
        visibleIds.push(recordId);
      });
 
+
+/*
      for(var i in $scope.csvData.records) {
        var currentRecord =  $scope.csvData.records[i];
        // check if this record is visible
        if (visibleIds.indexOf(currentRecord.id)>-1) {
-         var title = currentRecord[$scope.optionsForm.labelField];
+  */
+
+    async.each($scope.csvData.records, function(currentRecord, topCallback){
+
+         var title = "";
+         var markerOptions =  {};
+         async.series({
+           setSomeData: function(callback) {
+             title = currentRecord[$scope.optionsForm.labelField];
+             markerOptions = {
+               title: title
+             };
+             callback();
+           },
+           setTheMarker: function(callback) {
+             if ($scope.optionsForm.locationType == 0) {
+               markerOptions.position = new google.maps.LatLng(currentRecord[$scope.optionsForm.latitudeField], currentRecord[$scope.optionsForm.longitudeField]);
+               placeMarker(markerOptions,title);
+               callback();
+             }
+             else {
 
 
-         var marker = new google.maps.Marker({
-           position:new google.maps.LatLng(currentRecord.garageLatitude, currentRecord.garageLongitude),
-           title: title
-         });
-         marker.setMap($scope.map);
-         $scope.markersArray.push(marker);
+               var geocoder = new google.maps.Geocoder();
+               geocoder.geocode({'address': currentRecord[$scope.optionsForm.locationDescriptionField]}, function(results, status) {
+                 if (status == google.maps.GeocoderStatus.OK) {
+                   markerOptions.position = results[0].geometry.location;
+                   placeMarker(markerOptions,title);
+                   callback();
+                 }
+                 else callback();
+               });
+             }
+           }
+         }, function(err, results) {
+           topCallback();
+         } );
+    })
 
-         // setup label
-         var labelOption = $scope.defaultMapLabelOptions;
-         labelOption.content = title.crop(10);
-         labelOption.position = marker.getPosition();
-         var label = new InfoBox(labelOption)
-         label.open($scope.map);
-         $scope.labelsArray.push(label);
+/*
        }
      }
-
+*/
 
    }
 
@@ -334,7 +379,8 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
    }
 
    /**
-    *
+    * Callback to be executed when a change is made at the Label combo
+    * This is used to set which column is used for markers label on the map
     */
    $scope.handleLabelsComboChange = function() {
      var selectedLabelIndex = $('#labelsCombo').find(":selected").val();
@@ -344,12 +390,44 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
    }
 
 
+   /**
+    * Callback to set the sorting field and sorting order
+    */
    $scope.handleOrderComboChange = function() {
      var selectedLabelIndex = $('#sortFieldCombo').find(":selected").val();
      $scope.optionsForm.sortField = $scope.csvData.headers[selectedLabelIndex].camelCase();
      $scope.optionsForm.sortOrder = $('#sortOrderCombo').find(":selected").val();
      $scope.filterRecords();
    }
+
+
+   /**
+    * Callback used to handle all combos related to the location of the markers on the map
+    */
+   $scope.handleLocationSettingsChange = function() {
+     var locationType = $('#locationTypeCombo').find(":selected").val();
+     $scope.optionsForm.locationType = locationType;
+
+     // handle geo location
+     if (locationType==0) {
+       $('#latitudeComboFG').show();
+       $('#longitudeComboFG').show();
+       $('#LocationDescriptionComboFG').hide();
+       $scope.optionsForm.latitudeField = $scope.csvData.headers[$('#latitudeCombo').find(":selected").val()].camelCase();
+       $scope.optionsForm.longitudeField = $scope.csvData.headers[$('#longitudeCombo').find(":selected").val()].camelCase();
+     }
+     else {
+       // handle location string in any field
+       $('#latitudeComboFG').hide();
+       $('#longitudeComboFG').hide();
+       $('#LocationDescriptionComboFG').show();
+       $scope.optionsForm.locationDescriptionField = $scope.csvData.headers[$('#LocationDescriptionCombo').find(":selected").val()].camelCase();
+     }
+
+     $scope.updateMap();
+   }
+
+
 
    // run
    $scope.generateDataFromTextarea();
@@ -358,6 +436,7 @@ mapQuestApp.controller('MapQuestCtrl', function($scope, $sce) {
 
    // code to run after the page is loaded
    angular.element(document).ready(function () {
+     //$scope.handleLocationSettingsChange();
      $scope.setMarkers();
    });
 
